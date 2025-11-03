@@ -2,13 +2,7 @@
 
 import Link from "next/link";
 import { Shield } from "lucide-react";
-import {
-  SignedIn,
-  SignedOut,
-  SignIn,
-  SignInButton,
-  UserButton,
-} from "@clerk/nextjs";
+import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/nextjs";
 import { Button } from "./ui/button";
 import { usePathname } from "next/navigation";
 
@@ -17,7 +11,7 @@ function Header() {
   const isHomePage = pathname === "/";
   return (
     <div
-      className={`p-4 flex justify-between items-center %{isHomePage ? "bg-blue-50" : "bg-white border-b border-blue-50 "}`}
+      className={`p-4 flex justify-between items-center ${isHomePage ? "bg-blue-50" : "bg-white border-b border-blue-50"}`}
     >
       <Link href="/" className="flex items-center">
         <Shield className="h-8 w-8 mr-2 text-blue-600" />
