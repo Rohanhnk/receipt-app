@@ -122,3 +122,84 @@ export const updateReceiptStatus = mutation({
     return true;
   },
 });
+
+//delete receipt and its file
+export const deleteReceipt = mutation({
+  args: {
+    id: v.id("receipts"),
+  },
+  handler: async (ctx, args) => {
+    //verify user has access to this receipt
+    const receipt = await ctx.db.get(args.id);
+    if (!receipt) {
+      throw new Error("Receipt not found");
+    }
+
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) {
+      throw new Error("Not authenticated");
+    }
+
+    const userId = identity.subject;
+    if (receipt.userId !== userId) {
+      throw new Error("Not authorized to delete this receipt");
+    }
+
+    //delete the file from storage
+    await ctx.storage.delete(receipt.fileId);
+
+    //delete the receipt from the database
+    await ctx.db.delete(args.id);
+
+    return true;
+  },
+});
+
+//Update a receipt with extracted data
+export const upadteReceiptWithExtractedData = mutation({
+  args: {
+    id: v.id("receipts"),
+    fileDisplayName: v.string(),
+    merchantName: v.string(),
+    merchantAddress: v.string(),
+    merchantContact: v.string(),
+    transactionDate: v.string(),
+    transactionAmount: v.number(),
+    currency: v.string(),
+    receiptSummary: v.string(),
+    items: v.array(
+      v.object({
+        name: v.string(),
+        quantity: v.number(),
+        unitPrice: v.number(),
+        totalPrice: v.number(),
+      }),
+    ),
+  },
+  handler: async (ctx, args) => {
+    //verify user has access to this receipt
+    const receipt = await ctx.db.get(args.id);
+    if (!receipt) {
+      throw new Error("Receipt not found");
+    }
+
+    //Update receipt with extracted data
+
+    await ctx.db.patch(args.id, {
+      fileDisplayName: args.fileDisplayName,
+      merchantName: args.merchantName,
+      merchantAddress: args.merchantAddress,
+      merchantContact: args.merchantContact,
+      transactionDate: args.transactionDate,
+      transactionAmount: args.transactionAmount,
+      currency: args.currency,
+      receiptSummary: args.receiptSummary,
+      items: args.items,
+      status: "processed",
+    });
+
+    return {
+      userID: receipt.userId,
+    };
+  },
+});
